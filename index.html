@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#d71920">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Arrowverse Tracker">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" href="./icon.png">
+<link rel="apple-touch-icon" href="./icon.png">
+<title>Arrowverse Tracker</title>
+
+<style>
+:root{
+  --red:#d71920;--yellow:#ffd21c;--orange:#ff9d00;--bg:#080a10;
+  --card:#11151f;--card2:#181d29;--text:#fff;--muted:#9ca3af;
+  --border:rgba(255,255,255,.09);--green:#35d07f;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text);
+  background:radial-gradient(circle at 50% -10%,#5c1015 0,#18090c 28%,var(--bg) 65%);
+  min-height:100vh;
+}
+button{font:inherit}
+.app-header{
+  position:sticky;top:0;z-index:100;
+  padding:calc(14px + env(safe-area-inset-top)) 16px 15px;
+  background:rgba(8,10,16,.88);backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--border);
+}
+.header-inner{max-width:950px;margin:auto}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{
+  width:48px;height:48px;border-radius:14px;overflow:hidden;flex:none;
+  background:#d71920;box-shadow:0 7px 25px rgba(255,160,0,.28);
+}
+.logo img{display:block;width:100%;height:100%;object-fit:cover}
+.brand h1{margin:0;font-size:23px;line-height:1}
+.brand p{margin:5px 0 0;color:var(--muted);font-size:12px}
+.global-box{margin-top:14px}
+.global-line{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:7px}
+.global-number{font-weight:800}.global-percent{color:var(--yellow);font-weight:800}
+.progress{height:9px;background:#292e38;border-radius:99px;overflow:hidden}
+.progress-fill{
+  height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--orange),var(--yellow));
+  border-radius:99px;transition:width .25s ease;
+}
+main{width:min(950px,100%);margin:auto;padding:18px 12px 50px}
+.toolbar{display:flex;gap:8px;margin-bottom:14px}
+.toolbar button{
+  border:1px solid var(--border);color:white;background:#141923;
+  padding:9px 12px;border-radius:10px;cursor:pointer;
+}
+.search{
+  flex:1;min-width:0;background:#11151f;color:white;border:1px solid var(--border);
+  border-radius:11px;padding:10px 12px;outline:none;
+}
+.search:focus{border-color:var(--red)}
+.era{
+  margin-bottom:16px;border:1px solid var(--border);border-radius:20px;overflow:hidden;
+  background:linear-gradient(145deg,#121722,#0d1017);box-shadow:0 10px 35px rgba(0,0,0,.2);
+}
+.era-header{
+  width:100%;border:0;color:white;background:linear-gradient(135deg,#8e1016,var(--red));
+  padding:17px;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;text-align:left;cursor:pointer;
+}
+.era.completed .era-header{background:linear-gradient(135deg,#167a49,#20a963)}
+.era-left{display:flex;align-items:center;gap:12px;min-width:0}
+.chevron,.series-chevron,.season-chevron{transition:transform .2s}
+.chevron{font-size:18px}.era.open .chevron{transform:rotate(90deg)}
+.era-name{font-size:17px;font-weight:900}
+.era-progress{
+  font-size:12px;font-weight:800;white-space:nowrap;background:rgba(0,0,0,.2);
+  padding:6px 9px;border-radius:99px;
+}
+.era-content{display:none;padding:10px}
+.era.open .era-content{display:block}
+
+.series{
+  border:1px solid var(--border);border-radius:15px;overflow:hidden;
+  margin:8px 0;background:var(--card);
+}
+.series-header{
+  width:100%;border:0;color:white;background:var(--card2);padding:14px;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  cursor:pointer;text-align:left;
+}
+.series-left{display:flex;align-items:center;gap:9px;min-width:0}
+.series-chevron{font-size:15px}
+.series.open .series-chevron{transform:rotate(90deg)}
+.series-name{font-size:14px;font-weight:850}
+.series-progress{font-size:11px;color:var(--muted);white-space:nowrap;font-weight:700}
+.series.completed{border-color:rgba(53,208,127,.35)}
+.series.completed .series-header{background:rgba(53,208,127,.08)}
+.series.completed .series-progress{color:var(--green)}
+.seasons{display:none;padding:3px 7px 7px}
+.series.open .seasons{display:block}
+
+.season{
+  border:1px solid var(--border);border-radius:12px;overflow:hidden;
+  margin:7px 0;background:#0d1119;
+}
+.season-header{
+  width:100%;border:0;color:white;background:#151a24;padding:12px;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  cursor:pointer;text-align:left;
+}
+.season-left{display:flex;align-items:center;gap:8px}
+.season-chevron{font-size:14px}
+.season.open .season-chevron{transform:rotate(90deg)}
+.season-name{font-size:13px;font-weight:800}
+.season-progress{font-size:11px;color:var(--muted);font-weight:700}
+.season.completed{border-color:rgba(53,208,127,.3)}
+.season.completed .season-progress{color:var(--green)}
+.episodes{display:none}
+.season.open .episodes{display:block}
+
+.episode{
+  display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 12px;
+  border-top:1px solid rgba(255,255,255,.055);cursor:pointer;
+}
+.episode input{
+  width:19px;height:19px;flex:none;accent-color:var(--red);cursor:pointer;
+}
+.episode-title{font-size:13px;line-height:1.35}
+.episode input:checked + .episode-title{color:#737985;text-decoration:line-through}
+
+@media(min-width:700px){
+  main{padding:25px 18px 70px}
+  .era-header{padding:19px 20px}
+  .era-content{padding:12px}
+  .episode:hover{background:rgba(255,255,255,.035)}
+}
+</style>
+</head>
+
+<body>
+<header class="app-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="logo"><img src="./icon.png" alt="Arrowverse Tracker"></div>
+      <div>
+        <h1>Arrowverse Tracker</h1>
+        <p>Series • Seasons • Episodes</p>
+      </div>
+    </div>
+
+    <div class="global-box">
+      <div class="global-line">
+        <span class="global-number" id="globalText">0 / 0 épisodes</span>
+        <span class="global-percent" id="globalPercent">0%</span>
+      </div>
+      <div class="progress">
+        <div class="progress-fill" id="globalFill"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <input class="search" id="search" type="search"
+      placeholder="Rechercher une série, saison ou épisode..." autocomplete="off">
+    <button id="openAll">Tout ouvrir</button>
+  </div>
+  <div id="app"></div>
+</main>
+
+<script>
+/*
+============================================================
+LISTE ARROWVERSE
+============================================================
+Chaque série contient ses saisons.
+Chaque saison contient tous ses épisodes.
+
+Un épisode coché => la progression est sauvegardée.
+Tous les épisodes d'une saison cochés => la saison est
+automatiquement marquée comme terminée.
+Toutes les saisons d'une série cochées => la série est
+automatiquement marquée comme terminée.
+============================================================
+*/
+
+const source = [
+  {
+    title:"SÉRIES LIVE-ACTION",
+    shows:[
+      {name:"Arrow",seasons:[23,23,23,23,23,23,22,10]},
+      {name:"The Flash",seasons:[23,23,23,23,22,19,18,20,13]},
+      {name:"Constantine",seasons:[13]},
+      {name:"Supergirl",seasons:[20,22,23,22,19,20]},
+      {name:"DC's Legends of Tomorrow",seasons:[16,17,18,16,15,15,13]},
+      {name:"Black Lightning",seasons:[13,16,16,13]},
+      {name:"Batwoman",seasons:[20,18,13]}
+    ]
+  },
+  {
+    title:"SÉRIES ANIMÉES / WEB",
+    shows:[
+      {name:"Vixen",seasons:[6,6]},
+      {name:"Freedom Fighters: The Ray",seasons:[6,6]}
+    ]
+  }
+];
+
+const STORAGE_KEY="arrowverse-tracker-progress-v2";
+
+let completed={};
+
+try{
+  completed=JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}");
+}catch{
+  completed={};
+}
+
+function episodeId(groupIndex,showIndex,seasonIndex,episodeIndex){
+  return `g${groupIndex}-s${showIndex}-season${seasonIndex}-episode${episodeIndex}`;
+}
+
+function getSeasonProgress(show,groupIndex,showIndex,seasonIndex){
+  const total=show.seasons[seasonIndex];
+  let done=0;
+
+  for(let i=0;i<total;i++){
+    if(completed[episodeId(groupIndex,showIndex,seasonIndex,i)]===true){
+      done++;
+    }
+  }
+
+  return {done,total};
+}
+
+function getShowProgress(show,groupIndex,showIndex){
+  let total=0,done=0;
+
+  show.seasons.forEach((_,seasonIndex)=>{
+    const p=getSeasonProgress(show,groupIndex,showIndex,seasonIndex);
+    total+=p.total;
+    done+=p.done;
+  });
+
+  return {done,total};
+}
+
+function getGroupProgress(group,groupIndex){
+  let total=0,done=0;
+
+  group.shows.forEach((show,showIndex)=>{
+    const p=getShowProgress(show,groupIndex,showIndex);
+    total+=p.total;
+    done+=p.done;
+  });
+
+  return {done,total};
+}
+
+function save(){
+  try{
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(completed));
+  }catch{}
+}
+
+const app=document.getElementById("app");
+
+function updateSeason(element,show,groupIndex,showIndex,seasonIndex){
+  const p=getSeasonProgress(show,groupIndex,showIndex,seasonIndex);
+  const progress=element.querySelector(".season-progress");
+
+  progress.textContent=
+    p.done===p.total
+      ? `✓ ${p.done}/${p.total}`
+      : `${p.done}/${p.total}`;
+
+  element.classList.toggle("completed",p.total>0 && p.done===p.total);
+}
+
+function updateShow(element,show,groupIndex,showIndex){
+  const p=getShowProgress(show,groupIndex,showIndex);
+  const progress=element.querySelector(".series-progress");
+
+  progress.textContent=
+    p.done===p.total
+      ? `✓ ${p.done}/${p.total}`
+      : `${p.done}/${p.total}`;
+
+  element.classList.toggle("completed",p.total>0 && p.done===p.total);
+}
+
+function updateGroup(element,group,groupIndex){
+  const p=getGroupProgress(group,groupIndex);
+  const progress=element.querySelector(".era-progress");
+
+  progress.textContent=
+    p.done===p.total
+      ? `✓ ${p.done}/${p.total}`
+      : `${p.done}/${p.total}`;
+
+  element.classList.toggle("completed",p.total>0 && p.done===p.total);
+}
+
+function updateGlobal(){
+  let total=0,done=0;
+
+  source.forEach((group,groupIndex)=>{
+    const p=getGroupProgress(group,groupIndex);
+    total+=p.total;
+    done+=p.done;
+  });
+
+  const percent=total===0?0:Math.round(done/total*100);
+
+  document.getElementById("globalText").textContent=
+    `${done} / ${total} épisodes`;
+
+  document.getElementById("globalPercent").textContent=
+    `${percent}%`;
+
+  document.getElementById("globalFill").style.width=
+    `${percent}%`;
+}
+
+function render(){
+  app.innerHTML="";
+
+  source.forEach((group,groupIndex)=>{
+
+    const groupElement=document.createElement("section");
+    groupElement.className="era";
+
+    const groupHeader=document.createElement("button");
+    groupHeader.className="era-header";
+
+    const left=document.createElement("div");
+    left.className="era-left";
+
+    const chevron=document.createElement("span");
+    chevron.className="chevron";
+    chevron.textContent="›";
+
+    const name=document.createElement("span");
+    name.className="era-name";
+    name.textContent=group.title;
+
+    left.append(chevron,name);
+
+    const progress=document.createElement("span");
+    progress.className="era-progress";
+
+    groupHeader.append(left,progress);
+
+    const content=document.createElement("div");
+    content.className="era-content";
+
+    groupHeader.onclick=()=>{
+      groupElement.classList.toggle("open");
+    };
+
+    group.shows.forEach((show,showIndex)=>{
+
+      const showElement=document.createElement("div");
+      showElement.className="series";
+
+      const showHeader=document.createElement("button");
+      showHeader.className="series-header";
+
+      const showLeft=document.createElement("div");
+      showLeft.className="series-left";
+
+      const showChevron=document.createElement("span");
+      showChevron.className="series-chevron";
+      showChevron.textContent="›";
+
+      const showName=document.createElement("span");
+      showName.className="series-name";
+      showName.textContent=show.name;
+
+      showLeft.append(showChevron,showName);
+
+      const showProgress=document.createElement("span");
+      showProgress.className="series-progress";
+
+      showHeader.append(showLeft,showProgress);
+
+      const seasons=document.createElement("div");
+      seasons.className="seasons";
+
+      showHeader.onclick=()=>{
+        showElement.classList.toggle("open");
+      };
+
+      show.seasons.forEach((episodeCount,seasonIndex)=>{
+
+        const seasonElement=document.createElement("div");
+        seasonElement.className="season";
+
+        const seasonHeader=document.createElement("button");
+        seasonHeader.className="season-header";
+
+        const seasonLeft=document.createElement("div");
+        seasonLeft.className="season-left";
+
+        const seasonChevron=document.createElement("span");
+        seasonChevron.className="season-chevron";
+        seasonChevron.textContent="›";
+
+        const seasonName=document.createElement("span");
+        seasonName.className="season-name";
+        seasonName.textContent=`Saison ${seasonIndex+1}`;
+
+        seasonLeft.append(seasonChevron,seasonName);
+
+        const seasonProgress=document.createElement("span");
+        seasonProgress.className="season-progress";
+
+        seasonHeader.append(seasonLeft,seasonProgress);
+
+        const episodes=document.createElement("div");
+        episodes.className="episodes";
+
+        seasonHeader.onclick=()=>{
+          seasonElement.classList.toggle("open");
+        };
+
+        for(let episodeIndex=0;episodeIndex<episodeCount;episodeIndex++){
+
+          const id=episodeId(
+            groupIndex,showIndex,seasonIndex,episodeIndex
+          );
+
+          const label=document.createElement("label");
+          label.className="episode";
+
+          const checkbox=document.createElement("input");
+          checkbox.type="checkbox";
+          checkbox.checked=completed[id]===true;
+
+          const title=document.createElement("span");
+          title.className="episode-title";
+          title.textContent=`Épisode ${episodeIndex+1}`;
+
+          checkbox.onchange=()=>{
+
+            if(checkbox.checked){
+              completed[id]=true;
+            }else{
+              delete completed[id];
+            }
+
+            save();
+
+            updateSeason(
+              seasonElement,show,groupIndex,showIndex,seasonIndex
+            );
+
+            updateShow(
+              showElement,show,groupIndex,showIndex
+            );
+
+            updateGroup(
+              groupElement,group,groupIndex
+            );
+
+            updateGlobal();
+          };
+
+          label.append(checkbox,title);
+          episodes.appendChild(label);
+        }
+
+        seasonElement.append(seasonHeader,episodes);
+        seasons.appendChild(seasonElement);
+
+        updateSeason(
+          seasonElement,show,groupIndex,showIndex,seasonIndex
+        );
+      });
+
+      showElement.append(showHeader,seasons);
+      content.appendChild(showElement);
+
+      updateShow(
+        showElement,show,groupIndex,showIndex
+      );
+    });
+
+    groupElement.append(groupHeader,content);
+    app.appendChild(groupElement);
+
+    updateGroup(groupElement,group,groupIndex);
+  });
+
+  updateGlobal();
+}
+
+let allOpen=false;
+
+document.getElementById("openAll").onclick=()=>{
+
+  allOpen=!allOpen;
+
+  document
+    .querySelectorAll(".era,.series,.season")
+    .forEach(element=>{
+      element.classList.toggle("open",allOpen);
+    });
+
+  document.getElementById("openAll").textContent=
+    allOpen ? "Tout fermer" : "Tout ouvrir";
+};
+
+document.getElementById("search").addEventListener("input",function(){
+
+  const query=this.value.trim().toLowerCase();
+
+  document.querySelectorAll(".series").forEach(series=>{
+
+    let found=false;
+
+    series.querySelectorAll(".season").forEach(season=>{
+
+      const seasonMatch=season.textContent.toLowerCase().includes(query);
+
+      season.style.display=
+        query && !seasonMatch ? "none" : "";
+
+      if(seasonMatch){
+        found=true;
+        season.classList.add("open");
+      }
+    });
+
+    const showMatch=series.textContent.toLowerCase().includes(query);
+
+    if(showMatch){
+      found=true;
+    }
+
+    series.style.display=
+      query && !found ? "none" : "";
+
+    if(query && found){
+      series.classList.add("open");
+    }
+  });
+
+  document.querySelectorAll(".era").forEach(group=>{
+
+    const visible=
+      [...group.querySelectorAll(".series")]
+        .some(series=>series.style.display!=="none");
+
+    group.style.display=
+      query && !visible ? "none" : "";
+
+    if(query && visible){
+      group.classList.add("open");
+    }
+  });
+});
+
+render();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./sw.js").catch(error=>{
+      console.error("Service Worker:",error);
+    });
+  });
+}
+</script>
+</body>
+</html>
